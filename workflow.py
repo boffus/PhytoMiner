@@ -29,7 +29,7 @@ def run_homolog_pipeline(
     Returns:
         pd.DataFrame: The final, processed master DataFrame containing all homolog data.
     """
-    master_homolog_df = pd.DataFrame()
+    homolog_df = pd.DataFrame()
 
     if checkpoint_dir:
         os.makedirs(checkpoint_dir, exist_ok=True)
@@ -37,11 +37,11 @@ def run_homolog_pipeline(
 
         if os.path.exists(initial_checkpoint_file):
             print(f"Loading initial data from checkpoint: {initial_checkpoint_file}")
-            master_homolog_df = pd.read_csv(initial_checkpoint_file)
-            print_summary(master_homolog_df, "Loaded Initial Data Summary")
+            homolog_df = pd.read_csv(initial_checkpoint_file)
+            print_summary(homolog_df, "Loaded Initial Data Summary")
         else:
-            print(f"--- Starting Initial Fetch for {initial_organism} ---")
-            master_homolog_df = initial_fetch(
+            print(f"--- Starting Fetch for {initial_organism} ---")
+            homolog_df = initial_fetch(
                 source_organism_name=initial_organism,
                 transcript_names=list(initial_genes_dict.keys()),
                 subunit_dict=initial_genes_dict,
@@ -49,19 +49,19 @@ def run_homolog_pipeline(
             )
             time.sleep(1)
 
-            if not master_homolog_df.empty:
-                master_homolog_df = process_homolog_data(master_homolog_df)
-                master_homolog_df.to_csv(initial_checkpoint_file, index=False)
+            if not homolog_df.empty:
+                homolog_df = process_homolog_data(homolog_df)
+                homolog_df.to_csv(initial_checkpoint_file, index=False)
                 print(f"Saved initial data to checkpoint: {initial_checkpoint_file}")
-                print_summary(master_homolog_df, "Initial Fetch and Processing Complete")
+                print_summary(homolog_df, "Initial Fetch and Processing Complete")
             else:
                 print(f"Initial fetch for {initial_organism} yielded no results. Exiting.")
                 return pd.DataFrame()
     else: # No checkpointing
-        print(f"--- Starting Initial Fetch for {initial_organism} (no checkpointing) ---")
-        master_homolog_df = initial_fetch(initial_organism, list(initial_genes_dict.keys()), initial_genes_dict, max_workers)
-        if not master_homolog_df.empty:
-            master_homolog_df = process_homolog_data(master_homolog_df)
+        print(f"--- Starting Fetch for {initial_organism} (no checkpoints) ---")
+        homolog_df = initial_fetch(initial_organism, list(initial_genes_dict.keys()), initial_genes_dict, max_workers)
+        if not homolog_df.empty:
+            homolog_df = process_homolog_data(homolog_df)
         else:
             return pd.DataFrame()
 
@@ -77,20 +77,20 @@ def run_homolog_pipeline(
                 new_homologs_df = pd.read_csv(organism_checkpoint_file)
             else:
                 print(f"\n--- Fetching homologs for subsequent organism: {organism_name} ---")
-                new_homologs_df = subsequent_fetch(master_homolog_df, organism_name, max_workers)
+                new_homologs_df = subsequent_fetch(homolog_df, organism_name, max_workers)
                 if not new_homologs_df.empty:
                     new_homologs_df = process_homolog_data(new_homologs_df)
                     new_homologs_df.to_csv(organism_checkpoint_file, index=False)
         else: # No checkpointing
-            new_homologs_df = subsequent_fetch(master_homolog_df, organism_name, max_workers)
+            new_homologs_df = subsequent_fetch(homolog_df, organism_name, max_workers)
             if not new_homologs_df.empty:
                 new_homologs_df = process_homolog_data(new_homologs_df)
 
         if not new_homologs_df.empty:
-            master_homolog_df = pd.concat([master_homolog_df, new_homologs_df], ignore_index=True)
-            master_homolog_df = process_homolog_data(master_homolog_df)
-            print_summary(master_homolog_df, f"Updated Master DataFrame after adding {organism_name}")
+            homolog_df = pd.concat([homolog_df, new_homologs_df], ignore_index=True)
+            homolog_df = process_homolog_data(homolog_df)
+            print_summary(homolog_df, f"Updated Master DataFrame after adding {organism_name}")
 
     print("\n--- Homolog Pipeline Finished ---")
-    return master_homolog_df
+    return homolog_df
 
