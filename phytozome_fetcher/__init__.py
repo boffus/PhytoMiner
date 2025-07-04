@@ -1,5 +1,5 @@
 """
-A Python library to fetch and process homolog data from Phytozome.
+PhytoMiner: A Python library to fetch and process homolog data from Phytozome.
 """
 
 __version__ = "0.1.0"
