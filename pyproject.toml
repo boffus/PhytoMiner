@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
-    "intermine",
+    "intermine-ws",
     "requests",
     "seaborn",
     "matplotlib",
