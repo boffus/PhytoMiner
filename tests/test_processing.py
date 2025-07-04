@@ -43,7 +43,7 @@ def test_process_homolog_data_with_complex_cases(sample_homolog_df):
 
     # Test Case 1: Simple homolog
     assert processed_df.loc['sbicolor_gene1']['homolog.occurrences'] == 1
-    assert processed_df.loc['sbicolor_gene1']['origin.source.organisms'] == ('A. thaliana TAIR10')
+    assert processed_df.loc['sbicolor_gene1']['origin.source.organisms'] == ('A. thaliana TAIR10',)
 
     # Test Case 2: Deduplication by relationship
     # The 'one-to-one' relationship should have been kept.
@@ -90,6 +90,6 @@ def test_process_homolog_data_with_no_duplicates():
     # Check occurrence and origin for the first row
     row1 = processed_df[processed_df['primaryIdentifier'] == 'sbicolor_gene1'].iloc[0]
     assert row1['homolog.occurrences'] == 1
-    assert row1['origin.source.organisms'] == ('A. thaliana TAIR10')
+    assert row1['origin.source.organisms'] == ('A. thaliana TAIR10',)
 
 
