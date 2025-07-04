@@ -1,43 +1,47 @@
-# This workflow will upload a Python Package using Twine when a release is created
+# This workflow will upload a Python Package when a release is created
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-pypi
 
-name: Upload Python Package
+name: Test and Publish Python Package
 
 on:
+  push:
+    branches: [ "main" ]
   release:
-    types: [published]
-
-permissions:
-  contents: read
+    types: [ "published" ]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
-    - name: Build package
-      run: python -m build
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
     - name: Install dependencies
-      run: pip install -e .[dev]
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
     - name: Run tests
       run: pytest
+
+  publish:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install build dependencies
+        run: python -m pip install build
+      - name: Build package
+        run: python -m build
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
