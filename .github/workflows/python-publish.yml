@@ -38,7 +38,6 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v3
     - name: Install dependencies
-      run: pip install -e .[dev] # Assumes you have a [dev] extra in pyproject.toml for test deps
+      run: pip install -e .[dev]
     - name: Run tests
       run: pytest
-
