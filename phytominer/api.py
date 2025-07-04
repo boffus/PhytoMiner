@@ -6,9 +6,7 @@ from intermine.webservice import Service
 
 def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
-    Fetches homologs from Phytozome for a given CHUNK of transcripts of a source organism,
-    excluding homologs from the source organism itself. Adds Subunit and source organism information.
-    Results are sorted by relationship type.
+    Fetches homologs from Phytozome in CHUNKs.
 
     Parameters:
         source_organism_name (str): The shortName of the organism whose transcripts are being queried.
