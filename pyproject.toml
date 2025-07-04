@@ -28,3 +28,5 @@ dependencies = [
 "Homepage" = "https://github.com/your-username/phytominer"
 "Bug Tracker" = "https://github.com/your-username/phytominer/issues"
 
+[project.optional-dependencies]
+dev = ["pytest"]
