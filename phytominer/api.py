@@ -65,7 +65,7 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
 
     # Reorder columns for clarity
     ordered_columns = [
-        'source.organism', 'source.gene', 'relationship', 'subunit1', 'primaryIdentifier','
+        'source.organism', 'source.gene', 'relationship', 'subunit1', 'primaryIdentifier',
         'secondaryIdentifier', 'organism.commonName', 'organism.shortName', 'organism.proteomeId',
         'gene.length', 'sequence.length', 'sequence.residues'
     ]
