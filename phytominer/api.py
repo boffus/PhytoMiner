@@ -64,11 +64,9 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
     chunk_df['subunit1'] = chunk_df['source.gene'].map(subunit_map_for_transcripts)
 
     # Reorder columns for clarity
-    ordered_columns = [
-        'source.organism', 'source.gene', 'relationship', 'subunit1', 'primaryIdentifier',
+    ordered_columns = ['source.organism', 'source.gene', 'relationship', 'subunit1', 'primaryIdentifier',
         'secondaryIdentifier', 'organism.commonName', 'organism.shortName', 'organism.proteomeId',
-        'gene.length', 'sequence.length', 'sequence.residues'
-    ]
+        'gene.length', 'sequence.length', 'sequence.residues']
     # Ensure all ordered columns exist, and add any others at the end
     existing_ordered_columns = [col for col in ordered_columns if col in chunk_df.columns]
     other_columns = [col for col in chunk_df.columns if col not in existing_ordered_columns]
