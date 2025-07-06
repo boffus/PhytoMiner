@@ -7,7 +7,7 @@ from .config import PHYTOZOME_SERVICE_URL, DEFAULT_SLEEP_SECONDS
 
 def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
-    Fetches homologs from Phytozome in CHUNKs.
+    Fetches homologs from Phytozome in chunks.
 
     Parameters:
         source_organism_name (str): The shortName of the organism whose transcripts are being queried.
