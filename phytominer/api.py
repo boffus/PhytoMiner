@@ -3,6 +3,7 @@ import concurrent.futures
 import time
 import math
 from intermine.webservice import Service
+from .config import PHYTOZOME_SERVICE_URL, DEFAULT_SLEEP_SECONDS
 
 def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
@@ -21,7 +22,7 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
     if not transcript_chunk:
         return pd.DataFrame()
 
-    service = Service("https://phytozome-next.jgi.doe.gov/phytomine/service")
+    service = Service("PHYTOZOME_SERVICE_URL")
     all_results_for_chunk = []
     print(f"  Processing {len(transcript_chunk)} transcripts in chunk from {source_organism_name}...")
 
@@ -55,22 +56,22 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
 
                 # Homolog Gene Info
                 "primaryIdentifier": row["ortholog_gene.primaryIdentifier"],
-                "secondaryIdentifier": row.get("ortholog_gene.secondaryIdentifier"),
-                "gene.length": row.get("ortholog_gene.length"),
-                "sequence.length": row.get("ortholog_gene.sequence.length"),
-                "sequence.residues": row.get("ortholog_gene.sequence.residues"),
+                "secondaryIdentifier": row["ortholog_gene.secondaryIdentifier"],
+                "gene.length": row["ortholog_gene.length"],
+                "sequence.length": row["ortholog_gene.sequence.length"],
+                "sequence.residues": row["ortholog_gene.sequence.residues"],
 
                 # Homolog Organism Info
                 "organism.shortName": row["ortholog_organism.shortName"],
-                "organism.commonName": row.get("ortholog_organism.commonName"),
-                "organism.proteomeId": row.get("ortholog_organism.proteomeId"),
+                "organism.commonName": row["ortholog_organism.commonName"],
+                "organism.proteomeId": row["ortholog_organism.proteomeId"],
 
                 # Relationship Info
                 "relationship": row["relationship"],
             })
         subunit_name = subunit_map_for_transcripts.get(transcript_id, "Unknown Subunit")
         print(f"  Retrieved {current_transcript_homologs} homologs for {subunit_name} transcript: {transcript_id}")
-        time.sleep(0.5) # Add a 0.5-second delay after processing each transcript
+        time.sleep(DEFAULT_SLEEP_SECONDS) 
 
     if not all_results_for_chunk:
         return pd.DataFrame()
