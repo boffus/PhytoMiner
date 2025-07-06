@@ -20,56 +20,42 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
     if not transcript_chunk:
         return pd.DataFrame()
 
-    service = Service("PHYTOZOME_SERVICE_URL")
+    service = Service(PHYTOZOME_SERVICE_URL)
     all_results_for_chunk = []
     print(f"  Processing {len(transcript_chunk)} transcripts in chunk from {source_organism_name}...")
 
-    for transcript_id in transcript_chunk:
-        print(f"    Worker starting fetch for transcript: {transcript_id} from {source_organism_name}") # New print statement
-        query = service.new_query("Homolog")
-        query.add_view(
-            "gene.primaryIdentifier", "relationship", "ortholog_organism.commonName",
-            "ortholog_organism.shortName", "ortholog_organism.proteomeId",
-            "ortholog_gene.primaryIdentifier", "ortholog_gene.length",
-            "ortholog_gene.secondaryIdentifier", "ortholog_gene.genomicOrder",
-            "ortholog_gene.sequence.length", "ortholog_gene.sequence.residues")
-        
-        # From homolog_update.py: Sort by relationship to prioritize better matches
-        query.add_sort_order("Homolog.relationship", "DESC")
-        
-        # Constraints from original function and homolog_update.py
-        query.add_constraint("gene.primaryIdentifier", "=", transcript_id, code="A")
-        query.add_constraint("organism.shortName", "=", source_organism_name, code="B")
-        # From homolog_update.py: Exclude homologs from the same organism
-        query.add_constraint("ortholog_organism.shortName", "!=", source_organism_name, code="C")
+    query = service.new_query("Homolog")
+    query.add_view(
+        "gene.primaryIdentifier", "relationship", "ortholog_organism.commonName",
+        "ortholog_organism.shortName", "ortholog_organism.proteomeId",
+        "ortholog_gene.primaryIdentifier", "ortholog_gene.length",
+        "ortholog_gene.secondaryIdentifier", "ortholog_gene.genomicOrder",
+        "ortholog_gene.sequence.length", "ortholog_gene.sequence.residues")   
+    query.add_sort_order("Homolog.relationship", "DESC")   
+    query.add_constraint("gene.primaryIdentifier", "ONE OF", transcript_chunk, code="A")
+    query.add_constraint("organism.shortName", "=", source_organism_name, code="B")
+    query.add_constraint("ortholog_organism.shortName", "!=", source_organism_name, code="C")
+    query.set_logic("A and B and C")
 
-        query.set_logic("A and B and C")
-        current_transcript_homologs = 0
+    try:
         for row in query.rows():
-            current_transcript_homologs += 1
             all_results_for_chunk.append({
-                # Source Info
                 "source.organism": source_organism_name,
                 "source.gene": row["gene.primaryIdentifier"],
-
-                # Homolog Gene Info
                 "primaryIdentifier": row["ortholog_gene.primaryIdentifier"],
                 "secondaryIdentifier": row["ortholog_gene.secondaryIdentifier"],
                 "gene.length": row["ortholog_gene.length"],
                 "sequence.length": row["ortholog_gene.sequence.length"],
                 "sequence.residues": row["ortholog_gene.sequence.residues"],
-
-                # Homolog Organism Info
                 "organism.shortName": row["ortholog_organism.shortName"],
                 "organism.commonName": row["ortholog_organism.commonName"],
                 "organism.proteomeId": row["ortholog_organism.proteomeId"],
-
-                # Relationship Info
                 "relationship": row["relationship"],
             })
-        subunit_name = subunit_map_for_transcripts.get(transcript_id, "Unknown Subunit")
-        print(f"  Retrieved {current_transcript_homologs} homologs for {subunit_name} transcript: {transcript_id}")
-        time.sleep(DEFAULT_SLEEP_SECONDS) 
+        print(f"  Retrieved {len(all_results_for_chunk)} homologs for chunk starting with {transcript_chunk[0]}")
+    except Exception as e:
+        print(f"  Error querying chunk for {source_organism_name}: {e}")
+        return pd.DataFrame()
 
     if not all_results_for_chunk:
         return pd.DataFrame()
@@ -79,9 +65,9 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
 
     # Reorder columns for clarity
     ordered_columns = [
-        'subunit1', 'source.organism', 'source.gene', 'relationship',
-        'primaryIdentifier', 'secondaryIdentifier', 'organism.shortName', 'organism.commonName',
-        'organism.proteomeId', 'gene.length', 'sequence.length', 'sequence.residues'
+        'source.organism', 'source.gene', 'relationship', 'subunit1', 'primaryIdentifier','
+        'secondaryIdentifier', 'organism.commonName', 'organism.shortName', 'organism.proteomeId',
+        'gene.length', 'sequence.length', 'sequence.residues'
     ]
     # Ensure all ordered columns exist, and add any others at the end
     existing_ordered_columns = [col for col in ordered_columns if col in chunk_df.columns]
