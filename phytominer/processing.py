@@ -28,9 +28,10 @@ def process_homolog_data(df_combined):
         ordered=True
     )
 
-    # 2. Calculate Homolog Occurrences
+    # 2. Define key for grouping and calculate homolog occurrences
+    origin_key_cols = ['primaryIdentifier', 'organism.shortName']
     processed_df['homolog.occurrences'] = processed_df.groupby(origin_key_cols, observed=False)['source.gene'] \
-        .transform('size')
+        .transform('size') # Counts how many source genes point to this homolog
 
     # 3. Deduplication
     sort_by_cols = ['subunit1', 'relationship', 'homolog.occurrences', 'organism.shortName', 'primaryIdentifier', 'source.organism']
@@ -53,7 +54,7 @@ def process_homolog_data(df_combined):
         'gene.length', 'sequence.length', 'sequence.residues', 'homolog.occurrences'
     ]
 
-    # Reorder columns to a standard format, keeping any extra columns at the endpipi
+    # Reorder columns to a standard format, keeping any extra columns at the end
     existing_final_columns = [col for col in final_columns if col in processed_df.columns]
     other_columns = [col for col in processed_df.columns if col not in existing_final_columns]
     processed_df = processed_df[existing_final_columns + other_columns]
