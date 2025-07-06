@@ -54,15 +54,15 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
 
                 # Homolog Gene Info
                 "primaryIdentifier": row["ortholog_gene.primaryIdentifier"],
-                "secondaryIdentifier": row.get("ortholog_gene.secondaryIdentifier"),
-                "gene.length": row.get("ortholog_gene.length"),
-                "sequence.length": row.get("ortholog_gene.sequence.length"),
-                "sequence.residues": row.get("ortholog_gene.sequence.residues"),
+                "secondaryIdentifier": row["ortholog_gene.secondaryIdentifier"],
+                "gene.length": row["ortholog_gene.length"],
+                "sequence.length": row["ortholog_gene.sequence.length"],
+                "sequence.residues": row["ortholog_gene.sequence.residues"],
 
                 # Homolog Organism Info
                 "organism.shortName": row["ortholog_organism.shortName"],
-                "organism.commonName": row.get("ortholog_organism.commonName"),
-                "organism.proteomeId": row.get("ortholog_organism.proteomeId"),
+                "organism.commonName": row["ortholog_organism.commonName"],
+                "organism.proteomeId": row["ortholog_organism.proteomeId"],
 
                 # Relationship Info
                 "relationship": row["relationship"],
