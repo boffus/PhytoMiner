@@ -1,6 +1,7 @@
 # PhytoMiner
 This is a package for fetching Phytozome data
 
+![CI](https://github.com/boffus/PhytoMiner/actions/workflows/python-publish.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/phytominer.svg)](https://badge.fury.io/py/phytominer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,7 +19,7 @@ This library is designed to simplify complex, iterative bioinformatic queries, a
 
 ## Installation
 
-You can install `PhytoMiner` directly from PyPI:
+You can install the latest `PhytoMiner` release directly from PyPI:
 
 ```bash
 pip install phytominer
@@ -36,6 +37,7 @@ Here is a complete example of a common workflow:
 ```python
 import pandas as pd
 from phytozome_fetcher import (
+    run_homolog_pipeline,
     initial_fetch,
     subsequent_fetch,
     process_homolog_data,
@@ -44,14 +46,25 @@ from phytozome_fetcher import (
 )
 
 # 1. Define initial query genes for Arabidopsis thaliana
-# (Using a small, representative subset for this example)
+# (Using a small subset for this example)
 athaliana_genes = {
-    'AT1G74840': 'NdhB',
-    'ATCG00520': 'NdhD',
-    'AT4G05320': 'PnsL4',
+    'AT5G52100': 'CRR1',
+    'AT3G46790': 'CRR2',
+    'AT2G01590': 'CRR3',
 }
 
-# 2. Perform the initial fetch from Arabidopsis thaliana
+# 2. Run the whole pipeline
+results = run_homolog_pipeline(
+    source_organism_name="A. thaliana TAIR10",
+    transcript_names=list(athaliana_genes.keys()),
+    subunit_dict=athaliana_genes,
+    target_organism_name="S. bicolor v3.1.1",
+    max_workers=4
+)
+
+# The results variable contains the processed DataFrame.
+
+# 3. Alternatively perform the initial fetch from Arabidopsis thaliana
 print("--- Starting Initial Fetch ---")
 initial_df = initial_fetch(
     source_organism_name="A. thaliana TAIR10",
@@ -61,7 +74,7 @@ initial_df = initial_fetch(
 )
 print_summary(initial_df, "Initial Fetch Results")
 
-# 3. Perform a subsequent fetch using homologs found in Sorghum bicolor
+# 4. Perform a subsequent fetch using homologs found in Sorghum bicolor
 print("\n--- Starting Subsequent Fetch for Sorghum bicolor ---")
 sorghum_df = subsequent_fetch(
     current_master_df=initial_df,
@@ -70,13 +83,13 @@ sorghum_df = subsequent_fetch(
 )
 print_summary(sorghum_df, "Subsequent Fetch Results for Sorghum")
 
-# 4. Combine and process the data
+# 5. Combine and process the data
 print("\n--- Combining and Processing Data ---")
 master_df = pd.concat([initial_df, sorghum_df], ignore_index=True)
 processed_df = process_homolog_data(master_df)
 print_summary(processed_df, "Final Processed DataFrame")
 
-# 5. Visualize the results
+# 6. Visualize the results
 print("\n--- Generating Heatmap ---")
 # For a cleaner plot, let's display the top 15 organisms by homolog count
 top_organisms = processed_df['organism.shortName'].value_counts().nlargest(15).index
@@ -101,6 +114,17 @@ print(pivot_table.head())
 - `pivotmap(dataframe, index, columns, values)`: Generates a pivot table and a corresponding heatmap to visualize the count of homologs.
 - `print_summary(df, stage_message)`: Prints a quick summary of a DataFrame's shape and contents.
 
+## Continuous Integration & Deployment
+
+This project uses [GitHub Actions](https://github.com/features/actions) for automated testing and publishing.
+
+- **Automated Testing:**  
+  Every push to the `main` branch triggers the test suite using Python 3.9.
+- **Automated Publishing:**  
+  When a new release is published on GitHub, the package is automatically built and uploaded to PyPI.
+
+You can find the workflow configuration in [`.github/workflows/python-publish.yml`](.github/workflows/python-publish.yml).
+
 ## Contributing
 
 Contributions are welcome! If you have a suggestion or find a bug, please open an issue. Pull requests are also encouraged.
@@ -110,6 +134,15 @@ Contributions are welcome! If you have a suggestion or find a bug, please open a
 3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
 4.  Push to the branch (`git push origin feature/AmazingFeature`).
 5.  Open a Pull Request.
+
+### Running Tests Locally
+
+To run the test suite locally:
+
+```bash
+pip install -e .[dev]
+pytest
+```
 
 ## License
 
