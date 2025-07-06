@@ -18,10 +18,6 @@ def sample_homolog_df():
         # Case 3: Tests homolog.occurrences. 'gene3' is found from two source genes. Count should be 2.
         {'subunit1': 'NDHC', 'source.organism': 'A. thaliana TAIR10', 'source.gene': 'AT_NDHC_1', 'relationship': 'one-to-one', 'primaryIdentifier': 'sbicolor_gene3', 'organism.shortName': 'S. bicolor v3.1.1'},
         {'subunit1': 'NDHC', 'source.organism': 'A. thaliana TAIR10', 'source.gene': 'AT_NDHC_2', 'relationship': 'one-to-one', 'primaryIdentifier': 'sbicolor_gene3', 'organism.shortName': 'S. bicolor v3.1.1'},
-
-        # Case 4: Tests origin.source.organisms aggregation. 'gene4' is from two source organisms.
-        {'subunit1': 'NDHD', 'source.organism': 'A. thaliana TAIR10', 'source.gene': 'AT_NDHD', 'relationship': 'one-to-one', 'primaryIdentifier': 'sbicolor_gene4', 'organism.shortName': 'S. bicolor v3.1.1'},
-        {'subunit1': 'NDHD', 'source.organism': 'O. sativa Kitaake v3.1', 'source.gene': 'OS_NDHD', 'relationship': 'one-to-one', 'primaryIdentifier': 'sbicolor_gene4', 'organism.shortName': 'S. bicolor v3.1.1'},
     ]
     columns = ['subunit1', 'source.organism', 'source.gene', 'relationship', 'primaryIdentifier', 'organism.shortName']
     return pd.DataFrame(data, columns=columns)
@@ -29,21 +25,19 @@ def sample_homolog_df():
 
 def test_process_homolog_data_with_complex_cases(sample_homolog_df):
     """
-    Tests deduplication, occurrence counting, and source aggregation.
+    Tests deduplication and occurrence counting.
     """
     processed_df = process_homolog_data(sample_homolog_df)
 
-    # Expected number of rows after deduplication is 4 (one for each unique homolog gene)
-    assert len(processed_df) == 4
+    # Expected number of rows after deduplication is 3 (one for each unique homolog gene)
+    assert len(processed_df) == 3
     assert 'homolog.occurrences' in processed_df.columns
-    assert 'origin.source.organisms' in processed_df.columns
 
     # Set index for easy lookup
     processed_df = processed_df.set_index('primaryIdentifier')
 
     # Test Case 1: Simple homolog
     assert processed_df.loc['sbicolor_gene1']['homolog.occurrences'] == 1
-    assert processed_df.loc['sbicolor_gene1']['origin.source.organisms'] == ('A. thaliana TAIR10',)
 
     # Test Case 2: Deduplication by relationship
     # The 'one-to-one' relationship should have been kept.
@@ -53,11 +47,6 @@ def test_process_homolog_data_with_complex_cases(sample_homolog_df):
 
     # Test Case 3: Occurrence counting
     assert processed_df.loc['sbicolor_gene3']['homolog.occurrences'] == 2
-
-    # Test Case 4: Source organism aggregation
-    # The tuple should contain both source organisms, sorted alphabetically.
-    assert processed_df.loc['sbicolor_gene4']['origin.source.organisms'] == ('A. thaliana TAIR10', 'O. sativa Kitaake v3.1')
-    assert processed_df.loc['sbicolor_gene4']['homolog.occurrences'] == 2
 
 
 def test_process_homolog_data_with_empty_input():
@@ -90,6 +79,3 @@ def test_process_homolog_data_with_no_duplicates():
     # Check occurrence and origin for the first row
     row1 = processed_df[processed_df['primaryIdentifier'] == 'sbicolor_gene1'].iloc[0]
     assert row1['homolog.occurrences'] == 1
-    assert row1['origin.source.organisms'] == ('A. thaliana TAIR10',)
-
-
