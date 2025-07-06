@@ -7,9 +7,7 @@ from .config import PHYTOZOME_SERVICE_URL, DEFAULT_SLEEP_SECONDS
 
 def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
-    Fetches homologs from Phytozome for a given CHUNK of transcripts of a source organism,
-    excluding homologs from the source organism itself. Adds Subunit and source organism information.
-    Results are sorted by relationship type.
+    Fetches homologs from Phytozome in CHUNKs.
 
     Parameters:
         source_organism_name (str): The shortName of the organism whose transcripts are being queried.
@@ -158,5 +156,5 @@ def subsequent_fetch(current_df, target_organism_name, max_workers=8):
         index=transcripts_for_next_query_df.primaryIdentifier
     ).to_dict()
 
-    # Re-use the parallel fetching logic
+    # Re-use parallel fetching
     return initial_fetch(target_organism_name, next_transcript_ids, next_subunit_map, max_workers)
