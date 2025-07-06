@@ -55,10 +55,10 @@ athaliana_genes = {
 
 # 2. Run the whole pipeline
 results = run_homolog_pipeline(
-    source_organism_name="A. thaliana TAIR10",
-    transcript_names=list(athaliana_genes.keys()),
-    subunit_dict=athaliana_genes,
-    target_organism_name="S. bicolor v3.1.1",
+    initial_organism="A. thaliana TAIR10",
+    initial_genes_dict=athaliana_genes,
+    subsequent_organisms=[
+    "B. distachyon v3.2", "M. esculenta v7.1", 'M. truncatula Mt4.0v1'],
     max_workers=4
 )
 
