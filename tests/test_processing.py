@@ -13,7 +13,7 @@ def make_homolog_df(data):
 @pytest.mark.parametrize(
     "data,expected_len,expected_occurrences,expected_relationship",
     [
-        # Complex case: deduplication + occurrence counting
+        # Complex case: deduplication and occurrence counting
         (
             [
                 {'subunit1': 'NDHA', 'source.organism': 'A. thaliana TAIR10', 'source.gene': 'AT_NDHA', 'relationship': 'one-to-one', 'primaryIdentifier': 'sbicolor_gene1', 'organism.shortName': 'S. bicolor v3.1.1'},

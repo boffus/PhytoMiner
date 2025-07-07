@@ -7,7 +7,7 @@ class TestApiModule(unittest.TestCase):
     @patch('phytominer.api.requests.get')
     def test_fetch_gene_data_success(self, mock_get):
         # Arrange
-        expected_response = {'gene_id': 'AT1G01110', 'description': 'Sample gene'}
+        expected_response = {'gene_id': 'AT1G01110', 'description': 'Sample Gene'}
         mock_get.return_value = MagicMock(status_code=200)
         mock_get.return_value.json.return_value = expected_response
 

@@ -7,7 +7,7 @@ from phytominer import config
 
 def phytozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
-    Fetches homologs from Phytozome in chunks.
+    Fetches homologs from Phytozome in chunk's.
 
     Parameters:
         source_organism_name (str): The shortName of the organism being queried.

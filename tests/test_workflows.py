@@ -52,11 +52,11 @@ class TestWorkflow(unittest.TestCase):
         mock_initial_fetch, mock_subsequent_fetch, mock_process_homolog_data,
         mock_print_summary, mock_pivotmap
       ):
-    # Setup mocks
-    mock_exists.return_value = False
-    mock_initial_fetch.return_value = self.sample_initial_df
-    mock_subsequent_fetch.return_value = self.sample_subsequent_df
-    mock_process_homolog_data.return_value = self.sample_homolog_df
+        # Setup mocks
+        mock_exists.return_value = False
+        mock_initial_fetch.return_value = self.sample_initial_df
+        mock_subsequent_fetch.return_value = self.sample_subsequent_df
+        mock_process_homolog_data.return_value = self.sample_homolog_df
 
     # Run the pipeline
     run_homologs_pipeline(

@@ -22,7 +22,7 @@ def run_homologs_pipeline(
     """
     Orchestrates a multi-step homolog search pipeline.
 
-    This function performs an initial fetch from a source organism, then iteratively
+    Performs an initial fetch from a source organism, then iteratively
     fetches homologs from a list of subsequent organisms, using checkpoints to
     save and resume progress.
 

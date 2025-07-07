@@ -1,6 +1,6 @@
 import os
 
-# External Service URLs
+# External Service URL's
 PHYTOZOME_SERVICE_URL = os.getenv(
     "PHYTOZOME_SERVICE_URL",
     "https://phytozome-next.jgi.doe.gov/phytomine/service"

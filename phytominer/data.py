@@ -18,7 +18,7 @@ SUBCOMPLEX_DICT = {
     'PGR': ['PGR5', 'PGRL1A', 'PGRL1B', 'HCF101', 'HCF136', 'NDF5']
 }
 
-# Create reverse lookup dictionary for sub-complexes
+# Create reverse lookup dictionary for subcomplexes
 SUBUNIT_TO_SUBCOMPLEX = {}
 for subcomplex, subunits in SUBCOMPLEX_DICT.items():
     for subunit in subunits:

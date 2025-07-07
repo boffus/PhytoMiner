@@ -2,7 +2,7 @@ import pandas as pd
 
 def process_homolog_data(df_combined):
     """
-    Processes a combined DataFrame of homolog data.
+    Processes a DataFrame of homolog data.
     - Calculates occurrence count for each homolog.
     - Deduplicates entries to keep most relevant homologs.
 
