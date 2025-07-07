@@ -47,7 +47,7 @@ class TestWorkflow(unittest.TestCase):
     @patch('os.path.exists')
     @patch('os.makedirs')
     
-def test_run_homologs_pipeline_happy_path_with_checkpoints(
+    def test_run_homologs_pipeline_happy_path_with_checkpoints(
         self, mock_makedirs, mock_exists, mock_read_csv, mock_to_csv,
         mock_initial_fetch, mock_subsequent_fetch, mock_process_homolog_data,
         mock_print_summary, mock_pivotmap

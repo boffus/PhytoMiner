@@ -7,16 +7,16 @@ class TestApiModule(unittest.TestCase):
     @patch('phytominer.api.requests.get')
     def test_fetch_gene_data_success(self, mock_get):
         # Arrange
-        expected_response = {'gene_id': 'AT1G01010', 'description': 'Sample gene'}
+        expected_response = {'gene_id': 'AT1G01110', 'description': 'Sample gene'}
         mock_get.return_value = MagicMock(status_code=200)
         mock_get.return_value.json.return_value = expected_response
 
         # Act
-        result = api.fetch_gene_data('AT1G01010')
+        result = api.fetch_gene_data('AT1G01110')
 
         # Assert
         self.assertEqual(result, expected_response)
-        mock_get.assert_called_once_with('https://api.example.com/genes/AT1G01010')
+        mock_get.assert_called_once_with('https://api.example.com/genes/AT1G01110')
 
     @patch('phytominer.api.requests.get')
     def test_fetch_gene_data_failure(self, mock_get):

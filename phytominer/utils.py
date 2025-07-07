@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='primaryIdentifier'):
     """
-    Creates a pivot table and visualises it with a heatmap.
+    Creates a pivot table + visualises it with a heatmap.
 
     Parameters:
         dataframe (pd.DataFrame): The input dataframe.
