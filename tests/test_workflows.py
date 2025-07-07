@@ -7,6 +7,7 @@ from phytominer.config import DEFAULT_MAX_WORKERS
 class TestWorkflow(unittest.TestCase):
 
     def setUp(self):
+        self.my_instance = MyClass()
         """Set up test data + configurations."""
         self.initial_genes = {'AT1G01090': 'NdhA', 'AT1G01120': 'NdhB'}
         self.subsequent_orgs = ['osativa', 'slycopersicum']

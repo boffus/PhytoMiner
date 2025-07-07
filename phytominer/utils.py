@@ -29,7 +29,7 @@ def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='
 
 def print_summary(df, stage_message="DataFrame Summary"):
     """
-    Prints a concise summary of a DataFrame.
+    Prints concise summary of a DataFrame.
     """
     print(f"\n{stage_message}:")
     print(f"\n  - Shape: {df.shape}")

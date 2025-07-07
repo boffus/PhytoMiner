@@ -11,7 +11,7 @@ def phytozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
 
     Parameters:
         source_organism_name (str): The shortName of the organism being queried.
-        transcript_chunk (list): A CHUNK (list) of gene primaryIdentifiers to query for homologs.
+        transcript_chunk (list): A CHUNK of gene primaryIdentifiers.
         subunit_map_for_transcripts (dict): A dictionary mapping transcript_identifiers to Subunit names.
     Returns:
         pd.DataFrame: DataFrame containing fetched homolog data for the chunk.

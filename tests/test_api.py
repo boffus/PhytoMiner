@@ -23,7 +23,6 @@ class TestApiModule(unittest.TestCase):
         # Arrange
         mock_get.return_value = MagicMock(status_code=404)
         mock_get.return_value.json.return_value = {'error': 'Not found'}
-
         # Act
         result = api.fetch_gene_data('INVALID_ID')
 
