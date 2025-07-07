@@ -2,7 +2,7 @@
 PhytoMiner: A toolkit to query genomic data from Phytozome.
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 __all__ = [
     'config',
@@ -11,7 +11,10 @@ __all__ = [
     'utils',
     'workflow',
     'run_homologs_pipeline',
-    'run_workflow2'
+    'run_workflow2',
+    'run_expressions_workflow',
+    'load_master_df',
+    'fetch_expression_data'
 ]
 
 # Import essential components
@@ -20,5 +23,6 @@ from . import data
 from . import processing
 from . import utils
 from . import workflow
-from .workflow import run_homologs_pipeline, run_workflow2
 
+from .workflow import run_homologs_pipeline, run_workflow2, run_expressions_workflow
+from .processing import load_master_df, fetch_expression_data

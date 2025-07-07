@@ -13,3 +13,6 @@ DEFAULT_MAX_WORKERS = int(os.getenv("PHYTO_MAX_WORKERS", "8"))
 HOMOLOGS_OUTPUT_FILE = 'step1output.csv'
 TSV_DIR = r'C:\Users\toffe\OneDrive - Monash University\1 Pupu\Plant Energy\homologs\genes NdhA-NhdO'
 JOIN2_OUTPUT_FILE = 'step2output.csv' 
+EXPRESSION_CHECKPOINT_DIR = 'step2_checkpoints'
+EXPRESSIONS_OUTPUT_FILE = 'step3output.csv' 
+MASTER_JOIN_COL = ['primaryIdentifier', 'organism.shortName']

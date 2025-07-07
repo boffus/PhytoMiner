@@ -3,7 +3,7 @@ import concurrent.futures
 import time
 import math
 from intermine.webservice import Service
-from phytominer import config
+from phytominer.config import PHYTOZOME_SERVICE_URL
 
 def phytozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
@@ -152,3 +152,37 @@ def subsequent_fetch(current_df, target_organism_name, max_workers=8):
 
     # Re-use parallel fetching
     return initial_fetch(target_organism_name, next_transcript_ids, next_subunit_map, max_workers)
+
+def fetch_genes(gene_primary_id):
+    """
+    Fetches detailed gene information from Phytozome for a given gene primary identifier.
+    """
+    if not isinstance(gene_primary_id, str) or not gene_primary_id.strip():
+        print(f"NOTE: Invalid gene identifier: {gene_primary_id}. Skipping.")
+        return pd.DataFrame()
+    try:
+        service = Service(PHYTOZOME_SERVICE_URL)
+        query = service.new_query("Gene")
+        query.outerjoin("proteins")
+        query.outerjoin("rnaSeqExpressions")
+        query.outerjoin("coexpressions")
+        
+        query.add_view(
+            "length", "primaryIdentifier", "secondaryIdentifier", "organism.commonName",
+            "organism.proteomeId", "organism.shortName", "organism.species", "coexpressions.highRange", 
+            "coexpressions.lowRange", "coexpressions.JSON", "proteins.length","proteins.primaryIdentifier",
+            "rnaSeqExpressions.abundance", "rnaSeqExpressions.confhi", "rnaSeqExpressions.conflo", 
+            "rnaSeqExpressions.count", "rnaSeqExpressions.countdispersionvar", "rnaSeqExpressions.countuncertaintyvar", 
+            "rnaSeqExpressions.countvariance", "rnaSeqExpressions.libraryExpressionLevel", "rnaSeqExpressions.experiment.name", 
+            "rnaSeqExpressions.experiment.experimentGroup", "sequence.length", "sequence.residues"
+        )
+        query.add_constraint("primaryIdentifier", "=", gene_primary_id) 
+        
+        records = [dict(row) for row in query.rows()]
+        return pd.DataFrame(records)
+        
+    except Exception as e:
+        print(f"    Service Error: Could not fetch info for {gene_primary_id}: {e}")
+        return pd.DataFrame()
+
+

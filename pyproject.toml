@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phytominer"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
   { name="Kris Kari", email="toffe.kari@gmail.com" }
 ]
