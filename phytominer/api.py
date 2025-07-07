@@ -37,25 +37,35 @@ def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
     query.add_constraint("ortholog_organism.shortName", "!=", source_organism_name, code="C")
     query.set_logic("A and B and C")
 
-    try:
-        for row in query.rows():
-            all_results_for_chunk.append({
-                "source.organism": source_organism_name,
-                "source.gene": row["gene.primaryIdentifier"],
-                "primaryIdentifier": row["ortholog_gene.primaryIdentifier"],
-                "secondaryIdentifier": row["ortholog_gene.secondaryIdentifier"],
-                "gene.length": row["ortholog_gene.length"],
-                "sequence.length": row["ortholog_gene.sequence.length"],
-                "sequence.residues": row["ortholog_gene.sequence.residues"],
-                "organism.shortName": row["ortholog_organism.shortName"],
-                "organism.commonName": row["ortholog_organism.commonName"],
-                "organism.proteomeId": row["ortholog_organism.proteomeId"],
-                "relationship": row["relationship"],
-            })
-        print(f"  Retrieved {len(all_results_for_chunk)} homologs for chunk starting with {transcript_chunk[0]}")
-    except Exception as e:
-        print(f"  Error querying chunk for {source_organism_name}: {e}")
-        return pd.DataFrame()
+    # Retry logic for connection timeouts/failures
+    max_retries = 5
+    backoff_factor = 0.5  # seconds
+    for attempt in range(1, max_retries + 1):
+        try:
+            for row in query.rows():
+                all_results_for_chunk.append({
+                    "source.organism": source_organism_name,
+                    "source.gene": row["gene.primaryIdentifier"],
+                    "primaryIdentifier": row["ortholog_gene.primaryIdentifier"],
+                    "secondaryIdentifier": row["ortholog_gene.secondaryIdentifier"],
+                    "gene.length": row["ortholog_gene.length"],
+                    "sequence.length": row["ortholog_gene.sequence.length"],
+                    "sequence.residues": row["ortholog_gene.sequence.residues"],
+                    "organism.shortName": row["ortholog_organism.shortName"],
+                    "organism.commonName": row["ortholog_organism.commonName"],
+                    "organism.proteomeId": row["ortholog_organism.proteomeId"],
+                    "relationship": row["relationship"],
+                })
+            print(f"  Retrieved {len(all_results_for_chunk)} homologs for chunk starting with {transcript_chunk[0]}")
+            break  # Success, exit retry loop
+        except Exception as e:
+            print(f"  Error querying chunk for {source_organism_name} (attempt {attempt}/{max_retries}): {e}")
+            if attempt == max_retries:
+                print(f"  Max retries reached for chunk from {source_organism_name}. Skipping this chunk.")
+                return pd.DataFrame()
+            sleep_time = backoff_factor * (2 ** (attempt - 1))
+            print(f"  Retrying in {sleep_time:.1f} seconds...")
+            time.sleep(sleep_time)
 
     if not all_results_for_chunk:
         return pd.DataFrame()
