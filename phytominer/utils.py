@@ -38,3 +38,10 @@ def print_summary(df, stage_message="DataFrame Summary"):
         print(f"  - Unique Homolog Organisms: {df['organism.shortName'].nunique()}")
     if 'Subunit' in df.columns:
         print(f"  - Unique Subunits processed: {df['subunit1'].nunique()}")
+
+def log_message(message: str):
+    """
+    Logs a message to the console.
+    """
+    print(f"[INFO] {message}")
+

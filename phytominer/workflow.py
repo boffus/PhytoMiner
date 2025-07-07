@@ -2,11 +2,12 @@ import pandas as pd
 import os
 import time
 from .api import initial_fetch, subsequent_fetch
-from .processing import process_homolog_data
-from .utils import print_summary, pivotmap
-from .config import DEFAULT_MAX_WORKERS
+from .processing import process_homolog_data, merge_homolog_and_tsv_data
+from .utils import print_summary, pivotmap, log_message
+from .config import DEFAULT_MAX_WORKERS, HOMOLOGS_OUTPUT_FILE, TSV_DIR, JOIN2_OUTPUT_FILE
+from .data import read_all_tsv_files
 
-def run_homolog_pipeline(
+def run_homologs_pipeline(
     initial_organism,
     initial_genes_dict,
     subsequent_organisms,
@@ -97,3 +98,19 @@ def run_homolog_pipeline(
     print("\n--- Homolog Pipeline Finished ---")
     return homolog_df
 
+def run_workflow2():
+    """
+    Runs the complete data processing workflow.
+    """
+    log_message("Reading homolog data...")
+    homolog_df = pd.read_csv(HOMOLOGS_OUTPUT_FILE)
+
+    log_message("Reading TSV files...")
+    tsv_df = read_all_tsv_files(TSV_DIR)
+
+    log_message("Merging data...")
+    merged_df = merge_homolog_and_tsv_data(homolog_df, tsv_df)
+
+    log_message(f"Saving merged data to {JOIN2_OUTPUT_FILE}...")
+    merged_df.to_csv(JOIN2_OUTPUT_FILE, index=False)
+    log_message("Workflow completed successfully.")

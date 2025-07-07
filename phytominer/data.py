@@ -1,3 +1,8 @@
+import pandas as pd
+import os
+import string
+from config import TSV_DIR
+
 # Subcomplex_dict
 SUBCOMPLEX_DICT = {
     'M': ['NdhA', 'NdhB', 'NdhC', 'NdhD', 'NdhE', 'NdhF', 'NdhG'],
@@ -18,3 +23,49 @@ SUBUNIT_TO_SUBCOMPLEX = {}
 for subcomplex, subunits in SUBCOMPLEX_DICT.items():
     for subunit in subunits:
         SUBUNIT_TO_SUBCOMPLEX[subunit] = subcomplex
+
+def read_all_tsv_files(tsv_dir_path: str) -> pd.DataFrame:
+    """
+    Reads TSV files (ndhA-O.tsv), extracts gene IDs, and assigns subunit from filename.
+    """
+    all_tsv_data = []
+    letters = string.ascii_uppercase[:15]  # A to O
+
+    for letter in letters:
+        file_basename = f"ndh{letter}"
+        file_path = os.path.join(tsv_dir_path, f"{file_basename}.tsv")
+
+        if not os.path.exists(file_path):
+            print(f"Warning: TSV file not found: {file_path}. Skipping.")
+            continue
+
+        try:
+            if file_basename == "ndhO":  # ndhO.tsv has a header
+                temp_df = pd.read_csv(file_path, header=0, usecols=[0], engine='python', skipinitialspace=True)
+                if not temp_df.empty:
+                    current_df = pd.DataFrame({'Gene_ID_from_TSV': temp_df.iloc[:, 0]})
+            else:  # Other files have no header
+                current_df = pd.read_csv(file_path, header=None, names=['Gene_ID_from_TSV'], engine='python', skipinitialspace=True)
+
+            if current_df is not None and not current_df.empty:
+                current_df.dropna(subset=['Gene_ID_from_TSV'], inplace=True)
+                if not current_df.empty:
+                    current_df['Validated_Subunit_from_file'] = file_basename
+                    current_df['Gene_ID_from_TSV'] = current_df['Gene_ID_from_TSV'].astype(str).str.strip()
+                    all_tsv_data.append(current_df)
+                else:
+                    print(f"Info: TSV file {file_path} resulted in an empty DataFrame after dropping NA gene IDs. Skipping.")
+            elif current_df is None:
+                print(f"Warning: TSV file {file_path} (ndhO) might be empty or header issue. Skipping.")
+            else:
+                print(f"Info: TSV file {file_path} is empty. Skipping.")
+
+        except pd.errors.EmptyDataError:
+            print(f"Warning: TSV file {file_path} is empty. Skipping.")
+        except Exception as e:
+            print(f"Error reading TSV file {file_path}: {e}")
+
+    if all_tsv_data:
+        return pd.concat(all_tsv_data, ignore_index=True)
+    else:
+        return pd.DataFrame()

@@ -61,3 +61,10 @@ def process_homolog_data(df_combined):
 
     print(f"Processing complete. DataFrame shape after processing: {processed_df.shape}")
     return processed_df
+
+def merge_homolog_and_tsv_data(homolog_df: pd.DataFrame, tsv_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Merges homolog data with TSV data on gene IDs.
+    """
+    merged_df = pd.merge(homolog_df, tsv_df, left_on='gene_id', right_on='Gene_ID_from_TSV', how='left')
+    return merged_df

@@ -1,0 +1,35 @@
+import unittest
+from unittest.mock import patch, MagicMock
+from phytominer import api  # Adjust the import based on your project structure
+
+class TestApiModule(unittest.TestCase):
+
+    @patch('phytominer.api.requests.get')
+    def test_fetch_gene_data_success(self, mock_get):
+        # Arrange
+        expected_response = {'gene_id': 'AT1G01010', 'description': 'Sample gene'}
+        mock_get.return_value = MagicMock(status_code=200)
+        mock_get.return_value.json.return_value = expected_response
+
+        # Act
+        result = api.fetch_gene_data('AT1G01010')
+
+        # Assert
+        self.assertEqual(result, expected_response)
+        mock_get.assert_called_once_with('https://api.example.com/genes/AT1G01010')
+
+    @patch('phytominer.api.requests.get')
+    def test_fetch_gene_data_failure(self, mock_get):
+        # Arrange
+        mock_get.return_value = MagicMock(status_code=404)
+        mock_get.return_value.json.return_value = {'error': 'Not found'}
+
+        # Act
+        result = api.fetch_gene_data('INVALID_ID')
+
+        # Assert
+        self.assertIsNone(result)
+        mock_get.assert_called_once_with('https://api.example.com/genes/INVALID_ID')
+
+if __name__ == '__main__':
+    unittest.main()
