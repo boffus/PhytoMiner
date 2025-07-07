@@ -3,13 +3,14 @@ import os
 import time
 from .api import initial_fetch, subsequent_fetch
 from .processing import process_homolog_data
-from .utils import print_summary
+from .utils import print_summary, pivotmap
+from .config import DEFAULT_MAX_WORKERS
 
 def run_homolog_pipeline(
     initial_organism,
     initial_genes_dict,
     subsequent_organisms,
-    max_workers=8,
+    max_workers=DEFAULT_MAX_WORKERS,
     checkpoint_dir="homolog_checkpoints"
 ):
     """
@@ -45,7 +46,7 @@ def run_homolog_pipeline(
                 source_organism_name=initial_organism,
                 transcript_names=list(initial_genes_dict.keys()),
                 subunit_dict=initial_genes_dict,
-                max_workers=max_workers
+                max_workers=DEFAULT_MAX_WORKERS
             )
             time.sleep(1)
 
@@ -91,5 +92,8 @@ def run_homolog_pipeline(
             homolog_df = process_homolog_data(homolog_df)
             print_summary(homolog_df, f"Updated Master DataFrame after adding {organism_name}")
 
+    pivotmap(homolog_df, index='organism.shortName', columns='subunit1', values='primaryIdentifier')
+
     print("\n--- Homolog Pipeline Finished ---")
     return homolog_df
+
