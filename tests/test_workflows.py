@@ -1,16 +1,19 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 from unittest.mock import patch, MagicMock, call
 import pandas as pd
 import os
 
-from phytominer.workflow import run_homologs_pipeline, run_workflow2
-from phytominer.config import HOMOLOGS_OUTPUT_FILE, TSV_DIR, JOIN2_OUTPUT_FILE, DEFAULT_MAX_WORKERS
+from phytominer import workflow
+from phytominer import config
 
 
 class TestWorkflow(unittest.TestCase):
 
     def setUp(self):
-        """Set up common test data and configurations."""
+        """Set up test data and configurations."""
         self.initial_genes = {'AT1G01090': 'NdhA', 'AT1G01120': 'NdhB'}
         self.subsequent_orgs = ['osativa', 'slycopersicum']
         self.initial_org = 'athaliana'
@@ -51,10 +54,10 @@ class TestWorkflow(unittest.TestCase):
     @patch('os.makedirs')
     
 def test_run_homologs_pipeline_happy_path_with_checkpoints(
-    self, mock_makedirs, mock_exists, mock_read_csv, mock_to_csv,
-    mock_initial_fetch, mock_subsequent_fetch, mock_process_homolog_data,
-    mock_print_summary, mock_pivotmap
-):
+        self, mock_makedirs, mock_exists, mock_read_csv, mock_to_csv,
+        mock_initial_fetch, mock_subsequent_fetch, mock_process_homolog_data,
+        mock_print_summary, mock_pivotmap
+      ):
     # Setup mocks
     mock_exists.return_value = False
     mock_initial_fetch.return_value = self.sample_initial_df

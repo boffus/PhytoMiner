@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import string
-from config import TSV_DIR
+from phytominer.config import TSV_DIR
 
 # Subcomplex_dict
 SUBCOMPLEX_DICT = {

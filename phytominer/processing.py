@@ -3,7 +3,6 @@ import pandas as pd
 def process_homolog_data(df_combined):
     """
     Processes a combined DataFrame of homolog data.
-    - Aggregates origin source organisms for each homolog.
     - Calculates occurrence count for each homolog.
     - Deduplicates entries to keep the most relevant homolog.
 

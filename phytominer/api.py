@@ -3,9 +3,9 @@ import concurrent.futures
 import time
 import math
 from intermine.webservice import Service
-from .config import PHYTOZOME_SERVICE_URL, DEFAULT_SLEEP_SECONDS
+from phytominer import config
 
-def pythozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
+def phytozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_transcripts):
     """
     Fetches homologs from Phytozome in chunks.
 

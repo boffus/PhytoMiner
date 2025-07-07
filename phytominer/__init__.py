@@ -1,11 +1,24 @@
 """
-PhytoMiner: A Python library to fetch and process homolog data from Phytozome.
+PhytoMiner: A toolkit for analysing plant genomic data from Phytozome.
 """
 
 __version__ = "0.1.2"
 
-from .api import initial_fetch, subsequent_fetch
-from .processing import process_homolog_data
-from .utils import pivotmap, print_summary
-from .data import SUBCOMPLEX_DICT, SUBUNIT_TO_SUBCOMPLEX
+__all__ = [
+    'config',
+    'data',
+    'processing',
+    'utils',
+    'workflow',
+    'run_homologs_pipeline',
+    'run_workflow2'
+]
+
+# Import essential components
+from . import config
+from . import data
+from . import processing
+from . import utils
+from . import workflow
 from .workflow import run_homologs_pipeline, run_workflow2
+

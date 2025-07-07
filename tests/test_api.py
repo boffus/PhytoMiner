@@ -1,6 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 from unittest.mock import patch, MagicMock
-from phytominer import api  # Adjust the import based on your project structure
+from phytominer import api
 
 class TestApiModule(unittest.TestCase):
 

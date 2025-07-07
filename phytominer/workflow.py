@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 import time
-from .api import initial_fetch, subsequent_fetch
-from .processing import process_homolog_data, merge_homolog_and_tsv_data
-from .utils import print_summary, pivotmap, log_message
-from .config import DEFAULT_MAX_WORKERS, HOMOLOGS_OUTPUT_FILE, TSV_DIR, JOIN2_OUTPUT_FILE
-from .data import read_all_tsv_files
+from phytominer import api
+from phytominer import processing
+from phytominer import utils
+from phytominer import config
+from phytominer import data
 
 def run_homologs_pipeline(
     initial_organism,
