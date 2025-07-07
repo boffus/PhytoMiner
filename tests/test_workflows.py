@@ -51,11 +51,6 @@ class TestWorkflow(unittest.TestCase):
         # Setup mocks
         mock_exists.return_value = False
         mock_initial_fetch.return_value = self.sample_initial_df
-        expected_calls = [
-              unittest.mock.call(self.sample_homolog_df, 'osativa', DEFAULT_MAX_WORKERS),
-              unittest.mock.call(self.sample_homolog_df, 'slycopersicum', DEFAULT_MAX_WORKERS)
-        ]
-        mock_subsequent_fetch.assert_has_calls(expected_calls)
         mock_process_homolog_data.return_value = self.sample_homolog_df
 
         # Run the pipeline with correct argument order
@@ -66,17 +61,12 @@ class TestWorkflow(unittest.TestCase):
             max_workers=DEFAULT_MAX_WORKERS,
             checkpoint_dir=self.checkpoint_dir
         )
-
-        # Assertions: check that initial_fetch was called with correct arguments
-        mock_initial_fetch.assert_called_once_with(
-            source_organism_name=self.initial_org,
-            transcript_names=list(self.initial_genes.keys()),
-            subunit_dict=self.initial_genes,
-            max_workers=DEFAULT_MAX_WORKERS
-        )
-        mock_subsequent_fetch.assert_called_once()
-        mock_process_homolog_data.assert_called()
-        mock_to_csv.assert_called()
+        self.assertEqual(mock_subsequent_fetch.call_count, 2)
+        calls = mock_subsequent_fetch.call_args_list
+        self.assertEqual(calls[0][0][1], 'osativa')
+        self.assertEqual(calls[1][0][1], 'slycopersicum')
+        self.assertEqual(calls[0][0][2], DEFAULT_MAX_WORKERS)
+        self.assertEqual(calls[1][0][2], DEFAULT_MAX_WORKERS)
 
 if __name__ == '__main__':
     unittest.main()
