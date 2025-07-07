@@ -15,7 +15,7 @@ def phytozome_homologs(source_organism_name, transcript_chunk, subunit_map_for_t
         subunit_map_for_transcripts (dict): A dictionary mapping transcript_identifiers to Subunit names.
     Returns:
         pd.DataFrame: DataFrame containing fetched homolog data for the chunk.
-                      Returns an empty DataFrame if no homologs are found or an error occurs for this chunk.
+                      Returns an empty DataFrame if no homologs are found or an error occurs.
     """
     if not transcript_chunk:
         return pd.DataFrame()
