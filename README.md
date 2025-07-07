@@ -54,17 +54,37 @@ athaliana_genes = {
 }
 
 # 2. Run the whole pipeline
-results = run_homolog_pipeline(
-    initial_organism="A. thaliana TAIR10",
+from phytominer.workflow import run_homologs_pipeline
+from phytominer.config import DEFAULT_MAX_WORKERS
+
+results = run_homologs_pipeline(
+    initial_organism="athaliana",
     initial_genes_dict=athaliana_genes,
-    subsequent_organisms=[
-    "B. distachyon v3.2", "M. esculenta v7.1", 'M. truncatula Mt4.0v1'],
-    max_workers=4
+    subsequent_organisms=["osativa", "slycopersicum"],
+    max_workers=DEFAULT_MAX_WORKERS,
+    checkpoint_dir="homolog_checkpoints"
 )
 
 # The results variable contains the processed DataFrame.
 
-# 3. Alternatively perform the initial fetch from Arabidopsis thaliana
+# 3. Expression Data Fetch Workflow
+from phytominer.workflow import run_expression_fetch_workflow
+from phytominer.config import (
+    JOIN2_OUTPUT_FILE,
+    EXPRESSION_CHECKPOINT_DIR,
+    EXPRESSIONS_OUTPUT_FILE
+)
+from phytominer.processing import load_master_df, fetch_expression_data
+
+run_expression_fetch_workflow(
+    master_file=JOIN2_OUTPUT_FILE,
+    checkpoint_dir=EXPRESSION_CHECKPOINT_DIR,
+    output_file=EXPRESSIONS_OUTPUT_FILE,
+    fetch_expression_data=fetch_expression_data,
+    load_master_df=load_master_df
+)
+
+# 4. Alternatively perform the initial fetch from Arabidopsis thaliana
 print("--- Starting Initial Fetch ---")
 initial_df = initial_fetch(
     source_organism_name="A. thaliana TAIR10",
@@ -74,7 +94,7 @@ initial_df = initial_fetch(
 )
 print_summary(initial_df, "Initial Fetch Results")
 
-# 4. Perform a subsequent fetch using homologs found in Sorghum bicolor
+# 5. Perform a subsequent fetch using homologs found in Sorghum bicolor
 print("\n--- Starting Subsequent Fetch for Sorghum bicolor ---")
 sorghum_df = subsequent_fetch(
     current_master_df=initial_df,
@@ -83,13 +103,13 @@ sorghum_df = subsequent_fetch(
 )
 print_summary(sorghum_df, "Subsequent Fetch Results for Sorghum")
 
-# 5. Combine and process the data
+# 6. Combine and process the data
 print("\n--- Combining and Processing Data ---")
 master_df = pd.concat([initial_df, sorghum_df], ignore_index=True)
 processed_df = process_homolog_data(master_df)
 print_summary(processed_df, "Final Processed DataFrame")
 
-# 6. Visualize the results
+# 7. Visualize the results
 print("\n--- Generating Heatmap ---")
 # For a cleaner plot, let's display the top 15 organisms by homolog count
 top_organisms = processed_df['organism.shortName'].value_counts().nlargest(15).index
@@ -107,12 +127,15 @@ print(pivot_table.head())
 
 - `initial_fetch(source_organism_name, transcript_names, subunit_dict, max_workers)`: Kicks off the homolog search with a defined set of genes.
 - `subsequent_fetch(current_master_df, target_organism_name, max_workers)`: Expands the search by using the results from a previous fetch as input for a new target organism.
-- `process_homolog_data(df_combined)`: Takes a raw DataFrame of combined fetch results and performs cleaning, aggregation, and de-duplication. It adds `homolog.occurrences` and `origin.source.organisms` columns.
+- run_homologs_pipeline(initial_organism, initial_genes_dict, subsequent_organisms, max_workers, checkpoint_dir): Run the full homolog search pipeline.
+- run_expressions_workflow(master_file, checkpoint_dir, output_file, fetch_expression_data_for_gene_chunk, load_master_df, ...): Fetch and merge expression data for all subunits.
 
 ### Utility Functions
 
 - `pivotmap(dataframe, index, columns, values)`: Generates a pivot table and a corresponding heatmap to visualize the count of homologs.
 - `print_summary(df, stage_message)`: Prints a quick summary of a DataFrame's shape and contents.
+- load_master_df(filepath): Load and validate the master homolog DataFrame.
+- fetch_expression_data(gene_id_chunk, subunit_name_for_context, chunk_num, total_chunks): Fetch expression data for chunks of gene IDs.
 
 ## Continuous Integration & Deployment
 
@@ -147,3 +170,8 @@ pytest
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+
+Author: Kris Kari
+Email: toffe.kari@gmail.com
