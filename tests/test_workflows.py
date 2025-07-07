@@ -51,7 +51,11 @@ class TestWorkflow(unittest.TestCase):
         # Setup mocks
         mock_exists.return_value = False
         mock_initial_fetch.return_value = self.sample_initial_df
-        mock_subsequent_fetch.return_value = self.sample_subsequent_df
+        expected_calls = [
+              unittest.mock.call(self.sample_homolog_df, 'osativa', DEFAULT_MAX_WORKERS),
+              unittest.mock.call(self.sample_homolog_df, 'slycopersicum', DEFAULT_MAX_WORKERS)
+        ]
+        mock_subsequent_fetch.assert_has_calls(expected_calls)
         mock_process_homolog_data.return_value = self.sample_homolog_df
 
         # Run the pipeline with correct argument order
