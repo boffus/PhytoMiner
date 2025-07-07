@@ -9,6 +9,7 @@ from .config import (
     HOMOLOGS_OUTPUT_FILE,
     TSV_DIR,
     JOIN2_OUTPUT_FILE,
+    DEFAULT_SLEEP_SECONDS
 )
 from .data import read_all_tsv_files
 
@@ -54,8 +55,8 @@ def run_homologs_pipeline(
                 subunit_dict=initial_genes_dict,
                 max_workers=DEFAULT_MAX_WORKERS
             )
-            time.sleep(1)
-
+            time.sleep(DEFAULT_SLEEP_SECONDS)
+1
             if not homolog_df.empty:
                 homolog_df = process_homolog_data(homolog_df)
                 homolog_df.to_csv(initial_checkpoint_file, index=False)
