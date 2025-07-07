@@ -1,10 +1,7 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
-from phytominer import processing
+from phytominer.processing import process_homolog_data
 
 def make_homolog_df(data):
     columns = [

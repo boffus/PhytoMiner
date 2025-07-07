@@ -10,7 +10,7 @@ def process_homolog_data(df_combined):
         df_combined (pd.DataFrame): DataFrame containing combined homolog data.
 
     Returns:
-        pd.DataFrame: Processed and deduplicated DataFrame.
+        pd.DataFrame: Processed - deduplicated DataFrame.
     """
     if df_combined.empty:
         print("Input DataFrame is empty. No processing done.")

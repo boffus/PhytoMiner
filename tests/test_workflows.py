@@ -1,19 +1,13 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 from unittest.mock import patch, MagicMock, call
 import pandas as pd
-import os
-
-from phytominer import workflow
-from phytominer import config
-
+from phytominer.workflow import run_homologs_pipeline
+from phytominer.config import DEFAULT_MAX_WORKERS
 
 class TestWorkflow(unittest.TestCase):
 
     def setUp(self):
-        """Set up test data and configurations."""
+        """Set up test data + configurations."""
         self.initial_genes = {'AT1G01090': 'NdhA', 'AT1G01120': 'NdhB'}
         self.subsequent_orgs = ['osativa', 'slycopersicum']
         self.initial_org = 'athaliana'

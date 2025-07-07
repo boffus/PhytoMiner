@@ -1,5 +1,5 @@
 """
-PhytoMiner: A toolkit for analysing plant genomic data from Phytozome.
+PhytoMiner: A toolkit for querying plant genomic data from Phytozome.
 """
 
 __version__ = "0.1.2"
