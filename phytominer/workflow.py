@@ -56,7 +56,6 @@ def run_homologs_pipeline(
                 max_workers=DEFAULT_MAX_WORKERS
             )
             time.sleep(DEFAULT_SLEEP_SECONDS)
-1
             if not homolog_df.empty:
                 homolog_df = process_homolog_data(homolog_df)
                 homolog_df.to_csv(initial_checkpoint_file, index=False)
