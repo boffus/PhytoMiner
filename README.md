@@ -65,10 +65,8 @@ results = run_homologs_pipeline(
     checkpoint_dir="homolog_checkpoints"
 )
 
-# The results variable contains the processed DataFrame.
-
 # 3. Expression Data Fetch Workflow
-from phytominer.workflow import run_expression_fetch_workflow
+from phytominer.workflow import run_expressions_workflow
 from phytominer.config import (
     JOIN2_OUTPUT_FILE,
     EXPRESSION_CHECKPOINT_DIR,
@@ -76,7 +74,7 @@ from phytominer.config import (
 )
 from phytominer.processing import load_master_df, fetch_expression_data
 
-run_expression_fetch_workflow(
+run_expressions_workflow(
     master_file=JOIN2_OUTPUT_FILE,
     checkpoint_dir=EXPRESSION_CHECKPOINT_DIR,
     output_file=EXPRESSIONS_OUTPUT_FILE,
@@ -96,20 +94,20 @@ print_summary(initial_df, "Initial Fetch Results")
 
 # 5. Perform a subsequent fetch using homologs found in Sorghum bicolor
 print("\n--- Starting Subsequent Fetch for Sorghum bicolor ---")
-sorghum_df = subsequent_fetch(
+subsequent_df = subsequent_fetch(
     current_master_df=initial_df,
     target_organism_name="S. bicolor v3.1.1",
     max_workers=4
 )
-print_summary(sorghum_df, "Subsequent Fetch Results for Sorghum")
+print_summary(s_df, "Subsequent Fetch Results for Sorghum")
 
 # 6. Combine and process the data
 print("\n--- Combining and Processing Data ---")
-master_df = pd.concat([initial_df, sorghum_df], ignore_index=True)
+master_df = pd.concat([initial_df, subsequent_df], ignore_index=True)
 processed_df = process_homolog_data(master_df)
 print_summary(processed_df, "Final Processed DataFrame")
 
-# 7. Visualize the results
+# 7. Visualize missing genes
 print("\n--- Generating Heatmap ---")
 # For a cleaner plot, let's display the top 15 organisms by homolog count
 top_organisms = processed_df['organism.shortName'].value_counts().nlargest(15).index
