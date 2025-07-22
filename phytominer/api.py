@@ -174,7 +174,8 @@ def fetch_genes(gene_primary_id):
             "rnaSeqExpressions.abundance", "rnaSeqExpressions.confhi", "rnaSeqExpressions.conflo", 
             "rnaSeqExpressions.count", "rnaSeqExpressions.countdispersionvar", "rnaSeqExpressions.countuncertaintyvar", 
             "rnaSeqExpressions.countvariance", "rnaSeqExpressions.libraryExpressionLevel", "rnaSeqExpressions.experiment.name", 
-            "rnaSeqExpressions.experiment.experimentGroup", "sequence.length", "sequence.residues"
+            "rnaSeqExpressions.experiment.experimentGroup", "sequence.length", "sequence.residues",
+            "CDSs.gene.CDSs.name", "CDSs.primaryIdentifier", "CDSs.organism.name"
         )
         query.add_constraint("primaryIdentifier", "=", gene_primary_id) 
         

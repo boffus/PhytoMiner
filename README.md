@@ -36,7 +36,7 @@ Here is a complete example of a common workflow:
 
 ```python
 import pandas as pd
-from phytozome_fetcher import (
+from phytominer import (
     run_homolog_pipeline,
     initial_fetch,
     subsequent_fetch,
