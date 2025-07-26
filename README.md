@@ -1,7 +1,7 @@
 # PhytoMiner
 This is a package for fetching Phytozome data
 
-![CI](https://github.com/boffus/PhytoMiner/actions/workflows/python-publish.yml/badge.svg)
+[![CI](https://github.com/boffus/PhytoMiner/actions/workflows/python-publish.yml/badge.svg)](https://github.com/boffus/PhytoMiner/actions/workflows/python-publish.yml)
 [![PyPI version](https://badge.fury.io/py/phytominer.svg)](https://badge.fury.io/py/phytominer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,11 +11,11 @@ This library is designed to simplify complex, iterative bioinformatic queries, a
 
 ## Features
 
-- **Initial Fetch**: Start a search with a list of genes from a source organism.
-- **Iterative Search**: Perform chained or subsequent searches using homologs found in previous steps.
+- **Three-Step Pipeline**: A clear, sequential workflow for fetching homologs, merging local data, and retrieving detailed gene information.
+- **Iterative Search**: Automatically performs chained searches using homologs found in previous steps to build a comprehensive dataset.
 - **Parallel Processing**: Utilizes multithreading for efficient, parallel data fetching, significantly speeding up large queries.
-- **Data Processing**: Includes functions to clean, de-duplicate, and enrich the fetched data by calculating occurrence counts and aggregating source information.
-- **Visualisation**: Comes with a utility function to quickly generate a heatmap of homolog distribution across species and subunits.
+- **Checkpointing**: Automatically saves and loads intermediate results to prevent losing progress and allow for easy resumption of long-running jobs.
+- **Data Processing & Visualization**: Includes functions to clean, de-duplicate, and enrich data, plus a utility to quickly generate a heatmap of homolog distribution.
 
 ## Installation
 
@@ -27,113 +27,76 @@ pip install phytominer
 
 ## Usage
 
-Here is a complete example of a common workflow:
-1.  Start with a set of known genes in a source organism (e.g. `A. thaliana TAIR10`).
-2.  Perform an `initial_fetch` to find homologs in other species.
-3.  Use the results to perform a `subsequent_fetch` for a specific target organism (`S. bicolor v3.1.1`).
-4.  Combine and process the data.
-5.  Visualize the homolog distribution with `pivotmap`.
+Here is a complete example of the three-step workflow:
+
+Define a set of known genes in a source organism (e.g., A. thaliana).
+Run homologs_pipe to find homologs in other species.
+Run join_tsvs to combine the homolog data with local metadata from TSV files.
+Run genes_pipe to fetch detailed gene data for the final homolog set.
 
 ```python
-import pandas as pd
-from phytominer import (
-    run_homolog_pipeline,
-    initial_fetch,
-    subsequent_fetch,
-    process_homolog_data,
-    pivotmap,
-    print_summary
-)
+import logging
+from phytominer.workflow import step1_homolog_pipe, step2_merge_pipe, step3_gene_pipe
 
-# 1. Define initial query genes for Arabidopsis thaliana
-# (Using a small subset for this example)
-athaliana_genes = {
-    'AT5G52100': 'CRR1',
-    'AT3G46790': 'CRR2',
-    'AT2G01590': 'CRR3',
+# It's highly recommended to configure logging to see the progress
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# 1. Define initial search parameters
+# The initial organism to start the search from
+initial_organism = "A. thaliana TAIR10"
+
+# A dictionary of initial gene IDs and their corresponding subunit names
+initial_genes = {
+    "AT1G01090": "NDHA",
+    "AT1G01120": "NDHB",
+    "ATCG00520": "NDHC",
 }
 
-# 2. Run the whole pipeline
-from phytominer.workflow import run_homologs_pipeline
-from phytominer.config import DEFAULT_MAX_WORKERS
+# A list of other organisms to find homologs in
+subsequent_organisms = [
+    "S. bicolor v3.1.1",
+    "O. sativa Kitaake v3.1",
+    "S. viridis v2.1"
+]
 
-results = run_homologs_pipeline(
-    initial_organism="athaliana",
-    initial_genes_dict=athaliana_genes,
-    subsequent_organisms=["osativa", "slycopersicum"],
-    max_workers=DEFAULT_MAX_WORKERS,
-    checkpoint_dir="homolog_checkpoints"
+# 2. Run the three-step pipeline
+# Step 1: Fetch all homolog data, starting with the initial organism
+# and iterating through the subsequent ones.
+step1_df = homologs_pipe(
+    initial_organism=initial_organism,
+    initial_genes_dict=initial_genes,
+    subsequent_organisms=subsequent_organisms
 )
 
-# 3. Expression Data Fetch Workflow
-from phytominer.workflow import run_expressions_workflow
-from phytominer.config import (
-    JOIN2_OUTPUT_FILE,
-    EXPRESSION_CHECKPOINT_DIR,
-    EXPRESSIONS_OUTPUT_FILE
-)
-from phytominer.processing import load_master_df, fetch_expression_data
+# Step 2: Merge the homolog data with local TSV files containing additional metadata.
+# This step assumes you have a directory with TSV files (e.g., 'data/tsv/').
+step2_df = join_tsvs()
 
-run_expressions_workflow(
-    master_file=JOIN2_OUTPUT_FILE,
-    checkpoint_dir=EXPRESSION_CHECKPOINT_DIR,
-    output_file=EXPRESSIONS_OUTPUT_FILE,
-    fetch_expression_data=fetch_expression_data,
-    load_master_df=load_master_df
-)
+# Step 3: Fetch detailed gene data (e.g., expression, sequence) for the homologs found.
+step3_df = genes_pipe()
 
-# 4. Alternatively perform the initial fetch from Arabidopsis thaliana
-print("--- Starting Initial Fetch ---")
-initial_df = initial_fetch(
-    source_organism_name="A. thaliana TAIR10",
-    transcript_names=list(athaliana_genes.keys()),
-    subunit_dict=athaliana_genes,
-    max_workers=4
-)
-print_summary(initial_df, "Initial Fetch Results")
-
-# 5. Perform a subsequent fetch using homologs found in Sorghum bicolor
-print("\n--- Starting Subsequent Fetch for Sorghum bicolor ---")
-subsequent_df = subsequent_fetch(
-    current_master_df=initial_df,
-    target_organism_name="S. bicolor v3.1.1",
-    max_workers=4
-)
-print_summary(s_df, "Subsequent Fetch Results for Sorghum")
-
-# 6. Combine and process the data
-print("\n--- Combining and Processing Data ---")
-master_df = pd.concat([initial_df, subsequent_df], ignore_index=True)
-processed_df = process_homolog_data(master_df)
-print_summary(processed_df, "Final Processed DataFrame")
-
-# 7. Visualize missing genes
-print("\n--- Generating Heatmap ---")
-# For a cleaner plot, let's display the top 15 organisms by homolog count
-top_organisms = processed_df['organism.shortName'].value_counts().nlargest(15).index
-filtered_df = processed_df[processed_df['organism.shortName'].isin(top_organisms)]
-
-pivot_table = pivotmap(filtered_df)
-print("\nPivot Table Head:")
-print(pivot_table.head())
+# The final DataFrames are saved to CSV files at each step (e.g., step1output.csv).
+print("PhytoMiner workflow complete!")
 
 ```
 
 ## API Overview
 
-### Core Functions
+The phytominer library is structured around a sequential, three-step workflow.
 
-- `initial_fetch(source_organism_name, transcript_names, subunit_dict, max_workers)`: Kicks off the homolog search with a defined set of genes.
-- `subsequent_fetch(current_master_df, target_organism_name, max_workers)`: Expands the search by using the results from a previous fetch as input for a new target organism.
-- run_homologs_pipeline(initial_organism, initial_genes_dict, subsequent_organisms, max_workers, checkpoint_dir): Run the full homolog search pipeline.
-- run_expressions_workflow(master_file, checkpoint_dir, output_file, fetch_expression_data_for_gene_chunk, load_master_df, ...): Fetch and merge expression data for all subunits.
+Workflow Functions
+These are the main functions you'll use, found in phytominer.workflow.
+
+homologs_pipe(...): Orchestrates the entire homolog search. It starts with an initial set of genes, finds their homologs, and then iteratively searches for homologs of the results in other specified organisms. It handles checkpointing and produces a final, processed DataFrame of homolog data.
+join_tsvs(...): Takes the output from Step 1 and merges it with local TSV files containing supplementary data (e.g., subunit validation).
+genes_pipe(...): Takes the output from Step 2 and fetches detailed gene information (sequences, expression data, etc.) for all unique homologs identified in the pipeline.
 
 ### Utility Functions
 
-- `pivotmap(dataframe, index, columns, values)`: Generates a pivot table and a corresponding heatmap to visualize the count of homologs.
-- `print_summary(df, stage_message)`: Prints a quick summary of a DataFrame's shape and contents.
-- load_master_df(filepath): Load and validate the master homolog DataFrame.
-- fetch_expression_data(gene_id_chunk, subunit_name_for_context, chunk_num, total_chunks): Fetch expression data for chunks of gene IDs.
+These helper functions are available in phytominer.utils.
+
+pivotmap(dataframe, ...): Generates a pivot table and a corresponding heatmap to visualize the count of homologs across different species and subunits.
+log_summary(df, ...): Logs a concise summary of a DataFrame's shape, columns, memory usage, and other key statistics.
 
 ## Continuous Integration & Deployment
 

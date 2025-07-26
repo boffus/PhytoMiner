@@ -1,28 +1,20 @@
 """
-PhytoMiner: A toolkit to query genomic data from Phytozome.
+PhytoMiner: A toolkit for fetching and processing gene data from the Phytozome database.
 """
+import logging
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-__version__ = "0.1.4"
+__version__ = "0.2.0"
 
 __all__ = [
-    'config',
-    'data',
-    'processing',
-    'utils',
-    'workflow',
-    'run_homologs_pipeline',
-    'run_workflow2',
-    'run_expressions_workflow',
-    'load_master_df',
-    'fetch_expression_data'
+    # Main workflow functions
+    "homologs_pipe",
+    "join_tsvs",
+    "genes_pipe",
+    # Key utility functions
+    "pivotmap",
+    "log_summary"
 ]
 
-# Import essential components
-from . import config
-from . import data
-from . import processing
-from . import utils
-from . import workflow
-
-from .workflow import run_homologs_pipeline, run_workflow2, run_expressions_workflow
-from .processing import load_master_df, fetch_expression_data
+from .workflow import homologs_pipe, join_tsvs, genes_pipe
+from .utils import pivotmap, log_summary

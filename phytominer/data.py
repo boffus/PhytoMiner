@@ -1,15 +1,16 @@
 import pandas as pd
-import os
-import string
-from phytominer.config import TSV_DIR
+from pathlib import Path
+import logging
+logger = logging.getLogger(__name__)
+from .config import TSV_DIR
 
-# Subcomplex_dict
+# --- Subcomplex and Subunit Definitions ---
 SUBCOMPLEX_DICT = {
-    'M': ['NdhA', 'NdhB', 'NdhC', 'NdhD', 'NdhE', 'NdhF', 'NdhG'],
-    'A': ['NdhH', 'NdhI', 'NdhJ', 'NdhK', 'NdhL', 'NdhM', 'NdhN', 'NdhO'],
-    'EDB': ['NdhT', 'NdhS', 'NdhU', 'NdhV'],
-    'B': ['PnsB1', 'PnsB2', 'PnsB3', 'PnsB4', 'PnsB5'],
-    'L': ['PnsL1', 'PnsL2', 'PnsL3', 'PnsL4', 'PnsL5'],
+    'M': ['NDHA', 'NDHB', 'NDHC', 'NDHD', 'NDHE', 'NDHF', 'NDHG'],
+    'A': ['NDHH', 'NDHI', 'NDHJ', 'NDHK', 'NDHL', 'NDHM', 'NDHN'],
+    'EDB': ['NDHT', 'NDHS', 'NDHU', 'NDHV'],
+    'B': ['PNSB1', 'PNSB2', 'PNSB3', 'PNSB4', 'PNSB5'],
+    'L': ['PNSL1', 'PNSL2', 'PNSL3', 'PNSL4', 'PNSL5'],
     'CRR': ['CRR1', 'CRR2', 'CRR21', 'CRR27', 'CRR3', 'CRR4', 'CRR41', 'CRR42', 'CRR6', 'CRR7'],
     'FKBP': ['FKBP12', 'FKBP13', 'FKBP15-1', 'FKBP15-2', 'FKBP15-3', 'FKBP16-3', 'FKBP20-1'],
     'LHCA': ['LHCA1', 'LHCA2', 'LHCA3', 'LHCA4', 'LHCA5', 'LHCA6'],
@@ -18,54 +19,78 @@ SUBCOMPLEX_DICT = {
     'PGR': ['PGR5', 'PGRL1A', 'PGRL1B', 'HCF101', 'HCF136', 'NDF5']
 }
 
-# Create reverse lookup dictionary for subcomplexes
-SUBUNIT_TO_SUBCOMPLEX = {}
-for subcomplex, subunits in SUBCOMPLEX_DICT.items():
-    for subunit in subunits:
-        SUBUNIT_TO_SUBCOMPLEX[subunit] = subcomplex
+# Reverse lookup dictionary for finding a subcomplex by its subunit.
+SUBUNIT_TO_SUBCOMPLEX = {
+    subunit: subcomplex
+    for subcomplex, subunits in SUBCOMPLEX_DICT.items()
+    for subunit in subunits
+}
 
-def read_all_tsv_files(tsv_dir_path: str) -> pd.DataFrame:
+def read_tsv_files(tsv_dir_path: str) -> pd.DataFrame:
     """
-    Reads TSV files (ndhA-O.tsv), extracts gene IDs, and assigns subunit from filename.
+    Reads 'ndh*.tsv' files from a directory, extracts gene IDs, and assigns
+    a subunit name based on the filename.
+
+    This function dynamically finds all files matching the pattern, making it
+    robust to the addition or removal of TSV files. It handles files with
+    and without headers, standardizes column names, and cleans the data.
+
+    Args:
+        tsv_dir_path: The absolute path to the directory containing the TSV files.
+
+    Returns:
+        A pandas DataFrame containing the aggregated data from all valid TSV files.
+        The DataFrame will have 'Gene_ID_from_TSV' and 'subunit2' columns.
+        Returns an empty DataFrame if the directory does not exist or no valid data can be loaded.
     """
     all_tsv_data = []
-    letters = string.ascii_uppercase[:15]  # A to O
+    tsv_dir = Path(tsv_dir_path)
 
-    for letter in letters:
-        file_basename = f"ndh{letter}"
-        file_path = os.path.join(tsv_dir_path, f"{file_basename}.tsv")
+    if not tsv_dir.is_dir():
+        logger.error(f"TSV directory not found: {tsv_dir_path}")
+        return pd.DataFrame()
 
-        if not os.path.exists(file_path):
-            print(f"Warning: TSV file not found: {file_path}. Skipping.")
-            continue
+    # Use glob to dynamically find all files starting with 'ndh'
+    for file_path in tsv_dir.glob("ndh*.tsv"):
+        file_basename = file_path.stem 
 
         try:
-            if file_basename == "ndhO":  # ndhO.tsv has a header
-                temp_df = pd.read_csv(file_path, header=0, usecols=[0], engine='python', skipinitialspace=True)
-                if not temp_df.empty:
-                    current_df = pd.DataFrame({'Gene_ID_from_TSV': temp_df.iloc[:, 0]})
-            else:  # Other files have no header
-                current_df = pd.read_csv(file_path, header=None, names=['Gene_ID_from_TSV'], engine='python', skipinitialspace=True)
+            # The 'ndhO.tsv' file has a header, others do not.
+            header = 0 if file_basename == "ndhO" else None
 
-            if current_df is not None and not current_df.empty:
-                current_df.dropna(subset=['Gene_ID_from_TSV'], inplace=True)
-                if not current_df.empty:
-                    current_df['Validated_Subunit_from_file'] = file_basename
-                    current_df['Gene_ID_from_TSV'] = current_df['Gene_ID_from_TSV'].astype(str).str.strip()
-                    all_tsv_data.append(current_df)
-                else:
-                    print(f"Info: TSV file {file_path} resulted in an empty DataFrame after dropping NA gene IDs. Skipping.")
-            elif current_df is None:
-                print(f"Warning: TSV file {file_path} (ndhO) might be empty or header issue. Skipping.")
-            else:
-                print(f"Info: TSV file {file_path} is empty. Skipping.")
+            # Read only the first column from the TSV file.
+            df = pd.read_csv(
+                file_path,
+                header=header,
+                usecols=[0],
+                engine='python',
+                skipinitialspace=True
+            )
+
+            if df.empty:
+                logger.info(f"TSV file is empty or has no data rows: {file_path}. Skipping.")
+                continue
+
+            # Standardize the column name and clean the data.
+            df.columns = ['Gene_ID_from_TSV']
+            df.dropna(subset=['Gene_ID_from_TSV'], inplace=True)
+            df['Gene_ID_from_TSV'] = df['Gene_ID_from_TSV'].astype(str).str.strip()
+
+            # If the DataFrame is empty after cleaning, skip it.
+            if df.empty:
+                logger.info(f"TSV file is empty after cleaning NA values: {file_path}. Skipping.")
+                continue
+
+            df['subunit2'] = file_basename.upper()
+            all_tsv_data.append(df)
 
         except pd.errors.EmptyDataError:
-            print(f"Warning: TSV file {file_path} is empty. Skipping.")
+            logger.warning(f"TSV file is empty and could not be read: {file_path}. Skipping.")
         except Exception as e:
-            print(f"Error reading TSV file {file_path}: {e}")
+            logger.error(f"Failed to read or process TSV file {file_path}: {e}")
 
-    if all_tsv_data:
-        return pd.concat(all_tsv_data, ignore_index=True)
-    else:
+    if not all_tsv_data:
+        logger.warning("No valid TSV data was loaded from the directory.")
         return pd.DataFrame()
+
+    return pd.concat(all_tsv_data, ignore_index=True)

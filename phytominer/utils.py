@@ -1,10 +1,15 @@
+import logging
+logger = logging.getLogger(__name__)
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='primaryIdentifier'):
     """
-    Creates a pivot table + visualises it with a heatmap.
+    Creates a pivot table and visualises it with a heatmap.
+
+    This function is a convenient wrapper that combines pandas pivot_table
+    and seaborn heatmap functionalities for quick analysis.
 
     Parameters:
         dataframe (pd.DataFrame): The input dataframe.
@@ -12,10 +17,12 @@ def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='
         columns (str): Column to use for the pivot table columns.
         values (str): Column to aggregate for the pivot table values.
     Returns:
-        pd.DataFrame: The pivot table.
+        pd.DataFrame: The generated pivot table. Returns an empty DataFrame
+                      if the required columns are not found.
     """
-    if not all(col in dataframe.columns for col in [index, columns, values]):
-        print("Error: DataFrame is missing one or more required columns for pivotmap.")
+    required_cols = [index, columns, values]
+    if not all(col in dataframe.columns for col in required_cols):
+        logger.error(f"DataFrame is missing one or more required columns for pivotmap: {required_cols}")
         return pd.DataFrame()
 
     pivot_homolog = dataframe.pivot_table(index=index, columns=columns, values=values, aggfunc='count')
@@ -27,21 +34,37 @@ def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='
 
     return pivot_homolog
 
-def print_summary(df, stage_message="DataFrame Summary"):
+def log_summary(df: pd.DataFrame, stage_message: str = "DataFrame Summary"):
     """
-    Prints concise summary of DataFrame.
+    Logs a concise summary of a DataFrame's properties.
+
+    Args:
+        df: The DataFrame to summarize.
+        stage_message: A message to provide context for the summary.
     """
-    print(f"\n{stage_message}:")
-    print(f"\n  - Shape: {df.shape}")
-    print(f"\n  - Info: {df.info()}")
+    if not isinstance(df, pd.DataFrame):
+        logger.warning(f"{stage_message}: Input is not a pandas DataFrame.")
+        return
+
+    logger.info(f"--- {stage_message} ---")
+    logger.info(f"Shape: {df.shape}")
+
+    if df.empty:
+        logger.info("DataFrame is empty.")
+        return
+
+    logger.info(f"Columns: {df.columns.tolist()}")
+    mem_usage = df.memory_usage(deep=True).sum() / (1024 * 1024)  # in MiB
+    logger.info(f"Memory Usage: {mem_usage:.2f} MiB")
+
     if 'organism.shortName' in df.columns:
-        print(f"  - Unique Homolog Organisms: {df['organism.shortName'].nunique()}")
-    if 'Subunit' in df.columns:
-        print(f"  - Unique Subunits processed: {df['subunit1'].nunique()}")
+        logger.info(f"Unique Homolog Organisms: {df['organism.shortName'].nunique()}")
+    if 'subunit1' in df.columns:
+        logger.info(f"Unique Subunits processed: {df['subunit1'].nunique()}")
+    logger.info("--- End of Summary ---")
 
 def log_message(message: str):
     """
     Logs a message to the console.
     """
     print(f"[INFO] {message}")
-
