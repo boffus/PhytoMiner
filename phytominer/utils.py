@@ -1,8 +1,10 @@
 import logging
 logger = logging.getLogger(__name__)
+from pathlib import Path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from .config import HEATMAP_DIR
 
 def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='primaryIdentifier'):
     """
@@ -27,11 +29,19 @@ def pivotmap(dataframe, index='organism.shortName', columns='subunit1', values='
 
     pivot_homolog = dataframe.pivot_table(index=index, columns=columns, values=values, aggfunc='count')
 
-    plt.figure(figsize=(15, 10))
-    sns.heatmap(pivot_homolog, cmap='viridis', annot=True, fmt='g')
-    plt.title(f'Heatmap of {values} Counts by {index} and {columns}')
-    plt.show()
-
+    try:
+        plt.figure(figsize=(15, 10))
+        sns.heatmap(pivot_homolog, cmap='viridis', annot=True, fmt='g')
+        plt.title(f'Heatmap of {values} Counts by {index} of {columns}')
+        
+        # Ensure the directory exists before saving
+        Path(HEATMAP_DIR).parent.mkdir(parents=True, exist_ok=True)
+        
+        plt.savefig(HEATMAP_DIR, bbox_inches='tight')
+        logger.info(f"Heatmap saved to {HEATMAP_DIR}")
+        plt.close()  # Close the figure to free up memory
+    except Exception as e:
+        logger.error(f"Failed to generate or save heatmap: {e}", exc_info=True)
     return pivot_homolog
 
 def log_summary(df: pd.DataFrame, stage_message: str = "DataFrame Summary"):
@@ -67,4 +77,4 @@ def log_message(message: str):
     """
     Logs a message to the console.
     """
-    print(f"[INFO] {message}")
+    logger.info(message)
